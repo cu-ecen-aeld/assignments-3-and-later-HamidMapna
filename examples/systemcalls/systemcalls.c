@@ -1,4 +1,8 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,7 +20,8 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-
+    if(system(cmd) != 0)
+        return false;
     return true;
 }
 
@@ -58,8 +63,29 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
-
+    int result=0, status = 0;
+    pid_t frk_result = fork();
+    if(frk_result < 0){
+        printf("Failed to fork.\n");
+        return false;
+    }
+    if(frk_result == 0){
+          if(execv(command[0], command) < 0){
+            perror("error:");
+            result=-1;
+        }
+    }
+    //else{
+        waitpid(frk_result, &status, 0);
+    //    sleep(1);
+    //    printf("parent process\n");        
+    //}
     va_end(args);
+    printf("res: %d\n", result);
+    int exit_stat = WEXITSTATUS(status);
+    printf("exit_stat=%d\n", exit_stat);
+    if(exit_stat != 0 || result == -1)
+        return false;
 
     return true;
 }
@@ -92,6 +118,19 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT,0644);
+    if(fd < 0){
+        perror("failed to open file.");
+        return false;
+    }
+    if(fork() == 0){
+        if(dup2(fd, 1) < 0){
+            perror("failed to redirect output stream to file.");
+            return false;
+        }
+        close(fd);
+        execv(command[0], command);
+    }
 
     va_end(args);
 

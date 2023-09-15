@@ -65,23 +65,20 @@ bool do_exec(int count, ...)
  *
 */
     int status = 0;
-    pid_t frk_result = fork();
-    if(frk_result < 0){
+    pid_t frk_pid = fork();
+    if(frk_pid < 0){
         printf("Failed to fork.\n");
         return false;
     }
-    if(frk_result == 0){
-          if(execv(command[0], command) < 0){
-            perror("error:");
-//            return false;
-        }
+    if(frk_pid == 0){
+          execv(command[0], command);
+          perror("error:");
     }
-
-    pid_t wait_result = waitpid(frk_result, &status, 0);
     va_end(args);
+    pid_t wait_result = waitpid(frk_pid, &status, WUNTRACED|WCONTINUED);
+    bool ifexited_stat = WIFEXITED(status);
     int exit_stat = WEXITSTATUS(status);
-    printf("wait_result=%d, exit_stat=%d, errno=%d\n",wait_result, exit_stat, errno);
-    if(wait_result < 0 || exit_stat != 0)
+    if(!ifexited_stat || wait_result < 0 || exit_stat != 0)
         return false;
 
     return true;

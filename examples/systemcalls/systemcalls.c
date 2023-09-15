@@ -1,6 +1,7 @@
 #include "systemcalls.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/wait.h>
 
@@ -63,7 +64,7 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
-    int result=0, status = 0;
+    int status = 0;
     pid_t frk_result = fork();
     if(frk_result < 0){
         printf("Failed to fork.\n");
@@ -72,19 +73,15 @@ bool do_exec(int count, ...)
     if(frk_result == 0){
           if(execv(command[0], command) < 0){
             perror("error:");
-            result=-1;
+//            return false;
         }
     }
-    //else{
-        waitpid(frk_result, &status, 0);
-    //    sleep(1);
-    //    printf("parent process\n");        
-    //}
+
+    pid_t wait_result = waitpid(frk_result, &status, 0);
     va_end(args);
-    printf("res: %d\n", result);
     int exit_stat = WEXITSTATUS(status);
-    printf("exit_stat=%d\n", exit_stat);
-    if(exit_stat != 0 || result == -1)
+    printf("wait_result=%d, exit_stat=%d, errno=%d\n",wait_result, exit_stat, errno);
+    if(wait_result < 0 || exit_stat != 0)
         return false;
 
     return true;
@@ -118,21 +115,28 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
-    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT,0644);
+    int status = 0;
+    int fd = open(outputfile, O_WRONLY|O_CREAT, S_IRUSR| S_IWUSR);
     if(fd < 0){
         perror("failed to open file.");
         return false;
     }
-    if(fork() == 0){
+    pid_t frk_result = fork();
+    if(frk_result == 0){
         if(dup2(fd, 1) < 0){
             perror("failed to redirect output stream to file.");
             return false;
         }
-        close(fd);
-        execv(command[0], command);
+
+        if(execv(command[0], command) < 0){
+            return false;
+        }    
     }
-
+    waitpid(frk_result, &status, 0);
     va_end(args);
-
+    int exit_stat = WEXITSTATUS(status);
+    close(fd);
+    if(exit_stat != 0)
+        return false;
     return true;
 }

@@ -41,7 +41,7 @@ bool do_system(const char *cmd)
 */
 
 bool do_exec(int count, ...)
-{
+{    
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -64,6 +64,7 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    fflush(stdout);
     int status = 0;
     pid_t frk_pid = fork();
     if(frk_pid < 0){
@@ -72,10 +73,11 @@ bool do_exec(int count, ...)
     }
     if(frk_pid == 0){
           execv(command[0], command);
-          perror("error:");
+          exit(1);
+          return false;
     }
     va_end(args);
-    pid_t wait_result = waitpid(frk_pid, &status, WUNTRACED|WCONTINUED);
+    pid_t wait_result = waitpid(frk_pid, &status, 0);
     bool ifexited_stat = WIFEXITED(status);
     int exit_stat = WEXITSTATUS(status);
     if(!ifexited_stat || wait_result < 0 || exit_stat != 0)
@@ -91,6 +93,7 @@ bool do_exec(int count, ...)
 */
 bool do_exec_redirect(const char *outputfile, int count, ...)
 {
+    fflush(stdout);
     va_list args;
     va_start(args, count);
     char * command[count+1];

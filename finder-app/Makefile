@@ -1,3 +1,4 @@
+
 cc=$(CROSS_COMPILE)gcc
 CFLAGS= -I.
 all: writer.c

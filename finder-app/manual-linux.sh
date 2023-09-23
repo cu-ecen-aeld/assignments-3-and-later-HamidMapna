@@ -5,15 +5,15 @@
 set -e
 set -u
 
+CUR_DIR=$(dirname $(readlink -f "$0"))
 OUTDIR=/tmp/aeld
 KERNEL_REPO=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
-SYSROOT=/home/hamid/toolchains/arm-gnu-toolchain-12.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/
+SYSROOT=$HOME/toolchain2/gcctoolchain/aarch64-none-linux-gnu/libc/
 KERNEL_VERSION=v5.1.10
-BUSYBOX_VERSION=1_33_1
+BUSYBOX_VERSION=1_32_1
 FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
-CUR_DIR=$(dirname $(readlink -f "$0"))
 
 if [ $# -lt 1 ]
 then
@@ -77,11 +77,10 @@ echo "Make and install busybox"
 make distclean
 make defconfig
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
-sudo make CONFIG_PREFIX=${OUTDIR}/rootfs/ ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
+make CONFIG_PREFIX=${OUTDIR}/rootfs/ ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
 echo "Library dependencies"
 ${CROSS_COMPILE}readelf -a ${OUTDIR}/rootfs/bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a ${OUTDIR}/rootfs/bin/busybox | grep "Shared library"
-
 # TODO: Add library dependencies to rootfs
 cp ${SYSROOT}/lib/ld-linux-aarch64.so.1 ${OUTDIR}/rootfs/lib/
 cp ${SYSROOT}/lib64/libm.so.6 ${OUTDIR}/rootfs/lib64
@@ -96,7 +95,6 @@ sudo mknod -m 777  ${OUTDIR}/rootfs/dev/console c 5 1
 # TODO: Clean and build the writer utility
 echo "start copying"
 cd ${CUR_DIR}
-pwd
 make CROSS_COMPILE=${CROSS_COMPILE}
 # TODO: Copy the finder related scripts and executables to the /home directory
 # on the target rootfs
@@ -105,7 +103,7 @@ cp "writer" "finder.sh" "finder-test.sh" "autorun-qemu.sh" ${OUTDIR}/rootfs/home
 cp ../conf/username.txt ../conf/assignment.txt ${OUTDIR}/rootfs/home/conf
 
 # TODO: Chown the root directory
-sudo chown -R root:root ${OUTDIR}
+ sudo chown -R hamid:hamid ${OUTDIR}
  echo "create and compress initramfs.cpio"
  cd "$OUTDIR"
  find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio

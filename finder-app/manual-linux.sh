@@ -103,7 +103,7 @@ cp "writer" "finder.sh" "finder-test.sh" "autorun-qemu.sh" ${OUTDIR}/rootfs/home
 cp ../conf/username.txt ../conf/assignment.txt ${OUTDIR}/rootfs/home/conf
 
 # TODO: Chown the root directory
- sudo chown -R hamid:hamid ${OUTDIR}
+ sudo chown -R root:root ${OUTDIR}
  echo "create and compress initramfs.cpio"
  cd "$OUTDIR"
  find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio

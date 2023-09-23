@@ -10,7 +10,7 @@ OUTDIR=/tmp/aeld
 KERNEL_REPO=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
 SYSROOT=$HOME/toolchain2/gcctoolchain/aarch64-none-linux-gnu/libc/
 KERNEL_VERSION=v5.1.10
-BUSYBOX_VERSION=1_32_1
+BUSYBOX_VERSION=1_33_1
 FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
@@ -39,7 +39,7 @@ if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
     make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper #deep clean
     make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE defconfig
     make -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE all
-    make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE modules
+   # make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE modules
     make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE dtbs 
     # TODO: Add your kernel build steps here
 fi
@@ -56,9 +56,9 @@ fi
 
 mkdir -p ${OUTDIR}/rootfs
 cd ${OUTDIR}/rootfs
-mkdir -p ./bin ./dev ./etc ./home ./lib ./lib64 ./proc ./sbin ./sys ./tmp ./usr ./var
-mkdir -p ./usr/bin ./usr/lib ./usr/sbin
-mkdir -p ./var/log
+mkdir -p bin dev etc home lib lib64 proc sbin sys tmp usr var
+mkdir -p usr/bin usr/lib usr/sbin
+mkdir -p var/log
 # TODO: Create necessary base directories
 
 cd "$OUTDIR"
@@ -89,9 +89,10 @@ cp ${FINDER_APP_DIR}/lib/libc.so.6 ${OUTDIR}/rootfs/lib64
 
 
 #TODO: Make device nodes
-sudo mknod -m 777 ${OUTDIR}/rootfs/dev/null c 1 3
-sudo mknod -m 777  ${OUTDIR}/rootfs/dev/console c 5 1
-
+sudo mknod -m 666 ${OUTDIR}/rootfs/dev/null c 1 3
+sudo mknod -m 600  ${OUTDIR}/rootfs/dev/console c 5 1
+sudo mknod -m 666  ${OUTDIR}/rootfs/dev/tty c 5 0 # <--
+sudo chown root:tty ${OUTDIR}/rootfs/dev/{console,tty}
 # TODO: Clean and build the writer utility
 echo "start copying"
 cd ${FINDER_APP_DIR}
@@ -100,12 +101,18 @@ make CROSS_COMPILE=${CROSS_COMPILE}
 # on the target rootfs
 mkdir -p ${OUTDIR}/rootfs/home/conf/
 cp "writer" "finder.sh" "finder-test.sh" "autorun-qemu.sh" ${OUTDIR}/rootfs/home/
-cp ../conf/username.txt ../conf/assignment.txt ${OUTDIR}/rootfs/home/conf
+cp -r ../conf ${OUTDIR}/rootfs/home
 
 # TODO: Chown the root directory
- sudo chown -R root:root ${OUTDIR}
+cd ${OUTDIR}/rootfs
+sudo chown -R root:root *
+
  echo "create and compress initramfs.cpio"
- cd "$OUTDIR"
+if [ -e ${OUTDIR}/initramfs.* ]; then
+    rm -rf ${OUTDIR}/initramfs.*
+fi
+
  find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
+ cd "$OUTDIR"
  gzip -f initramfs.cpio   
 # TODO: Create initramfs.cpio.gz

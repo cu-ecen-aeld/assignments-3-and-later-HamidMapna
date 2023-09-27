@@ -71,7 +71,7 @@ void accept_socket(){
 void create_and_establish_socket(){
     create_socket();
     setopt_socket();
-    bind_socket(9000);
+    bind_socket();
     listen(_socket, 1);
     accept_socket();
 }
@@ -161,16 +161,41 @@ void communicate(int _socket){
     sigaction(SIGTERM, &action, 0);
     sigaction(SIGINT, &action, 0);
  }   
- 
- int main(int argc, char **argv){
-    register_signals();
-    rem_file();
+
+ void child_process(){
+    if(setsid() < 0){
+        exit(EXIT_FAILURE);
+    }
+    pid_t pid;
+    switch(fork()){
+        case 0:
+            break;
+        default:
+            exit(EXIT_FAILURE);    
+    }
+    umask(0);
     while(1){
         create_and_establish_socket();
         communicate(client);
         close(client);
         close(_socket);
     }
+ }
+ 
+ int main(int argc, char **argv){
+    register_signals();
+    rem_file();
+    pid_t pid;
+    switch(fork()){
+        case 0:
+          child_process();   //
+        break;  
+        default:
+          printf("Exit from parent process.\n");
+          exit(EXIT_SUCCESS);
+        break;    
+    }
+    return EXIT_SUCCESS;
  }
  
 

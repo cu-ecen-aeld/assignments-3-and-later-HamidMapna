@@ -1,5 +1,4 @@
 *.o
-writer
 server/*.txt
 Test_*_Runner.c
 build/

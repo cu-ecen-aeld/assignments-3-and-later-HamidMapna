@@ -51,7 +51,7 @@ fi
 #echo "Removing the old writer utility and compiling as a native application"
 #make clean
 #make
-make -f Makefile
+#make -f Makefile
 for i in $( seq 1 $NUMFILES)
 do
 	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
@@ -61,7 +61,7 @@ OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
 echo ${OUTPUTSTRING} > /tmp/assignment4-result.txt
 # remove temporary directories
 rm -rf /tmp/aeld-data
-make clean
+#make clean
 set +e
 echo ${OUTPUTSTRING} | grep "${MATCHSTR}"
 if [ $? -eq 0 ]; then

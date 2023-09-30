@@ -1,9 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <syslog.h>
+//#include <stdlib.h>
+//#include <syslog.h>
 
 int main(int argc, char **argv){
-    openlog("Assignment2",LOG_CONS, LOG_DEBUG);
+    printf("testing\n");
+  /*  openlog("Assignment2",LOG_CONS, LOG_DEBUG);
     if(argc != 3){
         printf("Insufficient number of input arguments.\n");
         syslog(LOG_ERR, "Insufficient number of input arguments.");
@@ -19,6 +20,6 @@ int main(int argc, char **argv){
     fprintf(fp,"%s",argv[2]);
     syslog(LOG_INFO, "writing %s to %s ", argv[2], argv[1]);
     fclose(fp);   
-    closelog();
+    closelog();*/
  return 0;
 }

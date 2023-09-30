@@ -52,10 +52,9 @@ fi
 #make clean
 #make
 #make -f Makefile
-script_path=$(cd `dirname $0`)
 for i in $( seq 1 $NUMFILES)
 do
-	${script_path}/writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
 OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")

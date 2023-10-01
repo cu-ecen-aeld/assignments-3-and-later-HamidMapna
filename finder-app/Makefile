@@ -1,5 +1,5 @@
 
-cc=aarch64-none-linux-gnu-gcc
+cc=${CROSS-COMPILE}gcc
 CFLAGS= -I.
 all: writer.c
 	$(cc) -o writer $<

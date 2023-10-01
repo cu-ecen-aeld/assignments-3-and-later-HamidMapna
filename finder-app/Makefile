@@ -1,8 +1,8 @@
 
-cc=${CROSS-COMPILE}gcc
+#cc=${CC}gcc
 CFLAGS= -I.
 all: writer.c
-	$(cc) -o writer $<
+	$(CC) -o writer $<
 .PHONY: clean
 clean:
 	 rm -rf writer *.o	

@@ -221,7 +221,7 @@ void main_communication_loop(){
         main_communication_loop();
     }*/
     printf("OKKKKKKKKKK\n");
-    return EXIT_SUCCESS;
+    return 0;
  }
  
 

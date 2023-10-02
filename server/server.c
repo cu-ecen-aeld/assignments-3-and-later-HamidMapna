@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
+/*#include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -199,9 +199,9 @@ void main_communication_loop(){
       printf("\nno daemmon. argc=%d\n", argc);
       return 0;
  }
-
+*/
  int main(int argc, char **argv){
-    register_signals();
+  /*  register_signals();
     rem_file();
     //if(check_is_daemon(argc, argv)){
         printf("its a daemon.\n");
@@ -220,6 +220,7 @@ void main_communication_loop(){
         printf("its not a daemon.\n");
         main_communication_loop();
     }*/
+    printf("OKKKKKKKKKK\n");
     return EXIT_SUCCESS;
  }
  

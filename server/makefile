@@ -1,4 +1,4 @@
-cc=${CROSS_COMPILE}gcc
+CC=${CROSS_COMPILE}gcc
 all: aesdsocket
 aesdsocket:server.c
 	${CC} -o $@ $<

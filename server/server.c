@@ -51,6 +51,7 @@ void bind_socket(){
     int bind_result = bind(_socket, (struct sock_addr*)&service, sizeof(service));
     if(bind_result < 0){
         fprintf(stderr, "failed to bind socket. errno: %d, error:%s\n", errno, strerror(errno));
+        kill(getpid(), SIGTERM);
         return -1;
     }
 }
@@ -87,8 +88,9 @@ void append_tempfile(char *line){
 }
 
 void rem_file(){
-    if (remove(file_path) != 0)
-        printf("Unable to delete the file.\n");
+    remove(file_path);
+    //if (remove(file_path) != 0)
+    //    printf("Unable to delete the file.\n");
 }
 
 void sendback_client(int _socket){
@@ -159,8 +161,17 @@ void communicate(int _socket){
     action.sa_handler = signal_handler;
     action.sa_flags = 0;
     sigaction(SIGTERM, &action, 0);
-    sigaction(SIGINT, &action, 0);
+    //sigaction(SIGINT, &action, 0);
  }   
+ 
+void main_communication_loop(){
+    while(1){
+        create_and_establish_socket();
+        communicate(client);
+        close(client);
+        close(_socket);
+    }
+}
 
  void child_process(){
     if(setsid() < 0){
@@ -174,27 +185,41 @@ void communicate(int _socket){
             exit(EXIT_FAILURE);    
     }
     umask(0);
-    while(1){
-        create_and_establish_socket();
-        communicate(client);
-        close(client);
-        close(_socket);
-    }
+    main_communication_loop();
  }
- 
+
+ int check_is_daemon(int argc, char **argv){
+      if(argc > 1){
+        for(char** flag=argv; *flag; ++flag){
+            printf("%s, ", *flag);
+            if(!strcmp(*flag, "-d"))
+                return 1;
+        }        
+      }
+      printf("\nno daemmon. argc=%d\n", argc);
+      return 0;
+ }
+
  int main(int argc, char **argv){
     register_signals();
     rem_file();
-    pid_t pid;
-    switch(fork()){
-        case 0:
-          child_process();   //
-        break;  
-        default:
-          printf("Exit from parent process.\n");
-          exit(EXIT_SUCCESS);
-        break;    
-    }
+    //if(check_is_daemon(argc, argv)){
+        printf("its a daemon.\n");
+        pid_t pid;
+        switch(fork()){
+            case 0:
+                child_process();   //
+            break;  
+            default:
+                printf("Exit from parent process.\n");
+                exit(EXIT_SUCCESS);
+            break;    
+        }
+    /*}
+    else{
+        printf("its not a daemon.\n");
+        main_communication_loop();
+    }*/
     return EXIT_SUCCESS;
  }
  

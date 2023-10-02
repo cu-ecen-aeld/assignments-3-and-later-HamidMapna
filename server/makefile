@@ -1,5 +1,6 @@
 cc=${CROSS_COMPILE}gcc
-all:
-	${cc} -o aesdsocket server.c
+all: aesdsocket
+aesdsocket:server.c
+	${CC} -o $@ $<
 clean:
 	rm -rf aesdsocket	 
